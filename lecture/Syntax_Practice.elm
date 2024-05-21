@@ -106,3 +106,4 @@ optimize e = case e of
              (l,Con 1) -> l
              (l,r)     -> Times l r
     other     -> other
+
