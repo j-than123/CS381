@@ -52,14 +52,15 @@ semOp op stack = case (op,stack) of
     (MULT,i::j::s) -> Just (i*j::s)
     (DEC, i::s)    -> Just (s)
     (SWAP,i::j::s) -> Just (j::i::s) 
-    (POP k,i::s)   -> if k > 0 || List.isEmpty(s) then semOp (POP (k - 1)) s else Just s
+    (POP k,i::s)   -> if k > 0 then semOp (POP (k - 1)) s else Just (i::s)
+                        -- if List.isEmpty(i::s) then Just [] else Just (i::s)
+    (POP 0, [])    -> Just []
     _              -> Nothing
         
 -- Exercise 2 --
 
 type Shape = X | LR Shape Shape | TD Shape Shape
 type alias BBox = (Int, Int)
-
 
 fst : BBox -> Int
 fst (x, _) = x
