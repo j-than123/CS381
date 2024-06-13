@@ -28,16 +28,28 @@ usage(P, T) :- where(X, P), when(X, T).
 
 /* conflict/2 */
 conflict(X, Y) :- where(X, Px), when(X, Tx), where(Y, Py), when(Y, Ty), Px = Py, Tx = Ty, X \= Y.
-/* conflict(X, Y) :- where(X, Px) = where(Y, Py), when(X, Tx) = when(Y, Ty), X \= Y. */
 
 /* meet/2 */
-/* meet(S1, S2) :- enroll(S1, P1), where(P1, X1), enroll(S2, P2), where(P2, X2), X1 = X2, S1 \= S2. */
-meet(S1, S2) :- enroll(S1, P1), enroll(S2, P2), where(P1, X), where(P2, X), S1 \= S2.
+meet(S1, S2) :- 
+    meet_helper(S1, S2, T1, T2),
+    T1 = T2.
 
+meet(S1, S2) :- 
+    meet_helper(S1, S2, T1, T2),
+    T1 is T2 + 1.
 
+meet(S1, S2) :- 
+    meet_helper(S1, S2, T1, T2),
+    T2 is T1 + 1.
 
-
-
+meet_helper(S1, S2, T1, T2) :-
+    enroll(S1, P1), 
+    enroll(S2, P2), 
+    where(P1, X), 
+    where(P2, X), 
+    when(P1, T1), 
+    when(P2, T2),
+    S1 \= S2.
 
 
 
@@ -54,45 +66,57 @@ member(X,[X|_]).
 member(X,[_|Y]) :- member(X,Y).
 
 /* rdup/2 */
-
-/* rdup([], M).
-rdup([X|L1], M) :- rdup(L1, [M|X]). */
-/*
-rdup([], []).
-rdup([X, [X|L]], M) :- 
-rdup([X|L], [M|Y]) :- X \= Y, rdup(L, [M|X]). */
-
+rdup([],[]).
+rdup([X],[X]).
 rdup([X, X|T], M) :-
     rdup([X|T], M).
 rdup([X,Y|T], [X|M]) :-
     X \= Y,
     rdup([Y|T], M).
 
+/* 
+rdup([], M).
+rdup([X|L1], M) :- rdup(L1, [M|X]). 
+
+rdup([], []).
+rdup([X, [X|L]], M) :- 
+rdup([X|L], [M|Y]) :- X \= Y, rdup(L, [M|X]). 
+*/
+
+
+
 
 /* flat/2 */
-
 flat([], []).
+flat([H|T], F) :- 
+    H = [],
+    flat(T, F).
 flat([H|T], F) :-
-    is_list(H),
+    H \= [], H = [_|_],
     flat(H, FH),
     flat(T, FT),
     append(FH, FT, F).
 flat([H|T], F) :-
-    \+ is_list(H),
+    H \= [], \+ (H = [_|_]),
     flat(T, FT),
     append([H], FT, F).
 
 
-/* project/3 */
 
+
+
+
+/* project/3 */
 project(Pos, Lst, Res) :-
     proj_helper(Pos, Lst, 1, Res).
-
 proj_helper([], _, _, []). 
 proj_helper([P|PT], [L|LT], I, [L|R]) :-
     P =:= I,
     NextI is I + 1,
     proj_helper(PT, LT, NextI, R). 
-proj_helper(Pos, [_|LT], I, R) :-
+proj_helper([P|PT], [_|LT], I, R) :-
+    P =\= I,
     NextI is I + 1, 
-    proj_helper(Pos, LT, NextI, R).
+    proj_helper([P|PT], LT, NextI, R).
+proj_helper([_|PT], [], _, R) :-
+    proj_helper(PT, [], 1, R).
